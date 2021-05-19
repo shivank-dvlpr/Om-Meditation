@@ -1,0 +1,2 @@
+include ':app'
+rootProject.name = "OM - Meditation Indian Reference - Relax"
