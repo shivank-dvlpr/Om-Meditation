@@ -50,7 +50,7 @@ public class MusicBackgroundService extends Service implements MediaPlayer.OnPre
     MediaPlayer mm;
     boolean open;
     int loopMp3, length, length2;
-    static boolean counter;
+    static boolean counter, timer;
     String notificationTitle, notificationContent;
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -69,7 +69,7 @@ public class MusicBackgroundService extends Service implements MediaPlayer.OnPre
                     seek = mediaPlayer22.getCurrentPosition();
 
                    if (MusicActivity.countDownRunning){
-                       MusicActivity.btn10.setText(MusicActivity.btn10.getText().toString());
+                       //MusicActivity.btn10.setText(MusicActivity.btn10.getText().toString());
                        MusicActivity.countDownTimer.cancel();
                    }
 
@@ -95,6 +95,10 @@ public class MusicBackgroundService extends Service implements MediaPlayer.OnPre
 
                 } else if (intent.getAction().equals("com.shivank.om.PLAY_MUSIC_ACTION")) {
                     //MusicActivity.mediaPlayer.start();
+                    if (MusicActivity.countDownRunning){
+                        //MusicActivity.btn10.setText(MusicActivity.btn10.getText().toString());
+                        MusicActivity.countDownTimer.cancel();
+                    }
                     mediaPlayer = musicActivity1.mediaPlayer;
                     //musicActivity1.mediaPlayer.start();
                     mediaPlayer22.start();
@@ -184,6 +188,7 @@ public class MusicBackgroundService extends Service implements MediaPlayer.OnPre
                 notificationTitle = intent.getStringExtra("notificationTitle");
                 notificationContent = intent.getStringExtra("notificationContent");
                 getImage = intent.getExtras().getInt("notImage");
+                timer = intent.getExtras().getBoolean("time");
 
 
                 // mediaPlayer = MediaPlayer.create(MusicBackgroundService.this, loop);

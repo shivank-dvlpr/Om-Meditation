@@ -115,6 +115,9 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     int intentData, mp3;
     int musicPlayingIndex;
     boolean onCreateTrue, startA;
+    String timerText;
+    int musicIdSt;
+    boolean timerCanceled;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,12 +190,18 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                         .putString(MediaMetadata.METADATA_KEY_ARTIST, "OM")
                         .build());
 
-        if (MusicBackgroundService.servicePlaying){
-            countDownRunning = true;
-        }else{
-            countDownRunning = false;
-        }
 
+        countDownRunning = MusicBackgroundService.timer;
+
+        if (countDownRunning){
+            countDownTimer.cancel();
+        }
+        timerCanceled = false;
+
+      /*  if(!MusicBackgroundService.servicePlaying){
+            reset.callOnClick();
+            resetTextAndColors();
+        }*/
 
         //musicService = new Intent(MusicActivity.this, MusicBackgroundService.class);
 
@@ -278,6 +287,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
 
     public void musicImgAndBackground(Context context,int musicIdSt, int musicPlayingIndex, int playingImgId, String musicTitle, String notiTitle){
 
+        this.musicIdSt = musicIdSt;
         if(MusicBackgroundService.mediaPlayer22.isPlaying() && musicIdStart == musicIdSt){
             imgPlay.setVisibility(View.INVISIBLE);
             imgPause.setVisibility(View.VISIBLE);
@@ -541,7 +551,9 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
         switch (v.getId()) {
 
             case R.id.imgPlay:
-
+                if (countDownRunning){
+                    countDownTimer.cancel();
+                }
                 MusicBackgroundService mm11 = new MusicBackgroundService();
 
                 if (!mediaPlayer.isPlaying()){
@@ -587,6 +599,8 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 break;
 
             case R.id.imgPause:
+                timerCanceled = true;
+
                 try {
 
 
@@ -643,7 +657,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                            // animateMinButtonText(btn30);
                         }
 
-                        countDownTimer.cancel();
+                    countDownTimer.cancel();
                         //buttonPressed = true;
                     }
 
@@ -664,6 +678,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 }
                 imgPlay.setVisibility(View.VISIBLE);
                 imgPause.setVisibility(View.GONE);
+                //countDownRunning = false;
                 break;
 
                 //TODO: Make Next and Previous Workable
@@ -743,6 +758,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
 
                 imgPlay.setVisibility(View.VISIBLE);
                 imgPause.setVisibility(View.GONE);
+
 
                 break;
 
@@ -843,8 +859,26 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onPause() {
         super.onPause();
+
+
       /*  imgPlay.setVisibility(View.VISIBLE);
         imgPause.setVisibility(View.GONE);*/
+        //timerText = btn10.getText().toString();
+       /* if (MusicBackgroundService.servicePlaying && countDownRunning){
+            if (btns == 10){
+                buttonTimer(btn10, timeLeft, "10MIN");
+                disableMinButtons(btn15);
+                disableMinButtons(btn30);
+            }else if (btns == 15){
+                buttonTimer(btn15, timeLeft, "15MIN");
+                disableMinButtons(btn10);
+                disableMinButtons(btn30);
+            }else if ( btns == 30){
+                buttonTimer(btn30, timeLeft, "30MIN");
+                disableMinButtons(btn10);
+                disableMinButtons(btn15);
+            }
+        }*/
 
 
                 musicService.putExtra("imgValue", imgId);
@@ -854,6 +888,8 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
                 musicService.putExtra("notificationTitle", notificationTitle);
                 musicService.putExtra("notificationContent", notificationContent);
                 musicService.putExtra("notImage", MainActivity.imgValues);
+                musicService.putExtra("time", countDownRunning);
+                musicService.putExtra("timeLeft", timeLeft);
                 //startService(intent);
         if (mediaPlayer.isPlaying()){
             if (open){
@@ -893,6 +929,10 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     protected void onStop() {
         super.onStop();
         onCreateTrue = false;
+        if (timerCanceled){
+            reset.callOnClick();
+            countDownTimer.cancel();
+        }
         /*if (mediaPlayer.isPlaying()){
             musicService = new Intent(MusicActivity.this, MusicBackgroundService.class);
             musicService.putExtra("imgValue", imgId);
@@ -917,6 +957,7 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     protected void onDestroy() {
         super.onDestroy();
 
+
         //stopService(new Intent(MusicActivity.this, MusicBackgroundService.class));
 
     }
@@ -925,27 +966,36 @@ public class MusicActivity extends AppCompatActivity implements View.OnClickList
     protected void onResume() {
         super.onResume();
 
-
-        if (MusicBackgroundService.servicePlaying){
-            if (countDownRunning && btns == 10){
-                buttonTimer(btn10, timeLeft, "10MIN");
-                disableMinButtons(btn15);
-                disableMinButtons(btn30);
-            }else if (countDownRunning && btns == 15){
-                buttonTimer(btn15, timeLeft, "15MIN");
-                disableMinButtons(btn10);
-                disableMinButtons(btn30);
-            }else if (countDownRunning && btns == 30){
-                buttonTimer(btn30, timeLeft, "30MIN");
-                disableMinButtons(btn10);
-                disableMinButtons(btn15);
-            }
-        }else {
-            if (countDownRunning){
+        if (!timerCanceled){
+            if(MusicBackgroundService.mediaPlayer22.isPlaying() && musicIdStart == musicIdSt){
+                imgPlay.setVisibility(View.INVISIBLE);
+                imgPause.setVisibility(View.VISIBLE);
+                if (MusicBackgroundService.servicePlaying && countDownRunning){
+                    countDownTimer.cancel();
+                    if (btns == 10){
+                        buttonTimer(btn10, timeLeft, "10MIN");
+                        disableMinButtons(btn15);
+                        disableMinButtons(btn30);
+                        //countDownTimer.cancel();
+                    }else if (btns == 15){
+                        buttonTimer(btn15, timeLeft, "15MIN");
+                        disableMinButtons(btn10);
+                        disableMinButtons(btn30);
+                    }else if ( btns == 30){
+                        buttonTimer(btn30, timeLeft, "30MIN");
+                        disableMinButtons(btn10);
+                        disableMinButtons(btn15);
+                    }
+                }
+            }else if (countDownRunning){
+                resetTextAndColors();
                 countDownTimer.cancel();
             }
-
         }
+
+
+
+
 /*
         if (startA){
             //finish();
